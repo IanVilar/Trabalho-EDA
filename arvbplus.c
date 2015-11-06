@@ -27,7 +27,6 @@ TAB *Cria(int t){
   novo->folha=1;
   novo->filho = (TAB**)malloc(sizeof(TAB*)*t*2);
   int i;
-  for(i=0; i<((t*2)-1); i++) novo->aluno[i] = NULL;
   for(i=0; i<(t*2); i++) novo->filho[i] = NULL;
   return novo;
 }
@@ -41,6 +40,7 @@ TAB *Libera(TAB *a){
     }
     free(a->chave);
     free(a->filho);
+    free(a->aluno);
     free(a);
     return NULL;
   }
@@ -53,7 +53,10 @@ void Imprime(TAB *a, int andar){
     for(i=0; i<=a->nchaves-1; i++){
       Imprime(a->filho[i],andar+1);
       for(j=0; j<=andar; j++) printf("   ");
-      printf("%d\n", a->chave[i]);
+      if(!a->folha) printf("%d\n", a->chave[i]);
+      else
+    	  printf("%d*\t%s\t%.2f\n", a->chave[i], a->aluno[i].nome, a->aluno[i].cr);
+
     }
     Imprime(a->filho[i],andar+1);
   }
@@ -82,9 +85,16 @@ TAB *Divisao(TAB *x, int i, TAB* y, int t){
   z->folha = y->folha;
   int j;
   for(j=0;j<t-1;j++)
-  {
 	 z->chave[j] = y->chave[j+t];
-	 z->aluno[j] = y->aluno[j+t];
+
+  if(z->folha)
+  {
+	  for(j=0; j<t-1; j++)
+	  {
+		  z->aluno[j].chave = y->aluno[j+t].chave;
+		  z->aluno[j].cr = y->aluno[j+t].cr;
+		  strcpy(z->aluno[j].nome, y->aluno[j+t].nome);
+	  }
   }
 
   if(!y->folha){
@@ -109,13 +119,15 @@ TAB *Insere_Nao_Completo(TAB *x, int chave, float cr, char *nome, int t){
   if(x->folha){
     while((i>=0) && (chave<x->chave[i])){
       x->chave[i+1] = x->chave[i];
-      x->aluno[i+1] = x->aluno[i];
+      x->aluno[i+1].chave = x->aluno[i].chave;
+	  x->aluno[i+1].cr = x->aluno[i].cr;
+	  strcpy(x->aluno[i+1].nome, x->aluno[i].nome);
       i--;
     }
     x->chave[i+1] = chave;
-    x->aluno[i+1]->chave = chave;
-    x->aluno[i+1]->cr = cr;
-    strcpy(x->aluno[i+1]->nome, nome);
+    x->aluno[i+1].chave = chave;
+    x->aluno[i+1].cr = cr;
+    strcpy(x->aluno[i+1].nome, nome);
     x->nchaves++;
     return x;
   }
@@ -135,9 +147,9 @@ TAB *Insere(TAB *T, int chave, float cr, char *nome, int t){
   if(!T){
     T=Cria(t);
     T->chave[0] = chave;
-    T->aluno[0]->chave = chave;
-    T->aluno[0]->cr = cr;
-    strcpy(T->aluno[0]->nome, nome);
+    T->aluno[0].chave = chave;
+    T->aluno[0].cr = cr;
+    strcpy(T->aluno[0].nome, nome);
     T->nchaves=1;
     return T;
   }
@@ -147,10 +159,10 @@ TAB *Insere(TAB *T, int chave, float cr, char *nome, int t){
     S->folha = 0;
     S->filho[0] = T;
     S = Divisao(S,1,T,t);
-    S = Insere_Nao_Completo(S,chave,t);
+    S = Insere_Nao_Completo(S,chave, cr, nome, t);
     return S;
   }
-  T = Insere_Nao_Completo(T,chave,t);
+  T = Insere_Nao_Completo(T,chave, cr, nome, t);
   return T;
 }
 
@@ -306,13 +318,17 @@ TAB* retira(TAB* arv, int k, int t){
 
 int main(int argc, char *argv[]){
   TAB * arvore = Inicializa();
-  int num = 0, from, to;
+  int num = 0, chave;
+  char nome[31];
+  float cr;
   while(num != -1){
     printf("Digite um numero para adicionar. 0 para imprimir. -9 para remover e -1 para sair\n");
     scanf("%i", &num);
+    scanf(" %30[^\n]", nome);
+    scanf("%f", &cr);
     if(num == -9){
-      scanf("%d", &from);
-      arvore = retira(arvore, from, t);
+      scanf("%d", &chave);
+      arvore = retira(arvore, chave, t);
       Imprime(arvore,0);
     }
     else if(num == -1){
@@ -325,7 +341,11 @@ int main(int argc, char *argv[]){
       printf("\n");
       Imprime(arvore,0);
     }
-    else arvore = Insere(arvore, num, t);
+    else
+    {
+    	arvore = Insere(arvore, num, cr, nome, t);
+    	Imprime(arvore, 0);
+    }
     printf("\n\n");
   }
 }
