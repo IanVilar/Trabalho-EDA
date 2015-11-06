@@ -1,11 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 const int t = 2;
 
+typedef struct aluno
+{
+	int chave;
+	float cr;
+	char nome[31];
+}Aluno;
+
 typedef struct ArvB{
   int nchaves, folha, *chave;
+  Aluno *aluno;
   struct ArvB **filho;
+  struct ArvB *prox;
 }TAB;
 
 
@@ -13,9 +23,11 @@ TAB *Cria(int t){
   TAB* novo = (TAB*)malloc(sizeof(TAB));
   novo->nchaves = 0;
   novo->chave =(int*)malloc(sizeof(int*)*((t*2)-1));
+  novo->aluno = (Aluno*) malloc(sizeof(Aluno) * ((t*2)-1));
   novo->folha=1;
   novo->filho = (TAB**)malloc(sizeof(TAB*)*t*2);
   int i;
+  for(i=0; i<((t*2)-1); i++) novo->aluno[i] = NULL;
   for(i=0; i<(t*2); i++) novo->filho[i] = NULL;
   return novo;
 }
@@ -53,7 +65,7 @@ TAB *Busca(TAB* x, int ch){
   if(!x) return resp;
   int i = 0;
   while(i < x->nchaves && ch > x->chave[i]) i++;
-  if(i < x->nchaves && ch == x->chave[i]) return x;
+  if(i < x->nchaves && ch == x->chave[i] && x->folha) return x;
   if(x->folha) return resp;
   return Busca(x->filho[i], ch);
 }
@@ -69,14 +81,20 @@ TAB *Divisao(TAB *x, int i, TAB* y, int t){
   z->nchaves= t - 1;
   z->folha = y->folha;
   int j;
-  for(j=0;j<t-1;j++) z->chave[j] = y->chave[j+t];
+  for(j=0;j<t-1;j++)
+  {
+	 z->chave[j] = y->chave[j+t];
+	 z->aluno[j] = y->aluno[j+t];
+  }
+
   if(!y->folha){
     for(j=0;j<t;j++){
       z->filho[j] = y->filho[j+t];
       y->filho[j+t] = NULL;
     }
   }
-  y->nchaves = t-1;
+
+  y->nchaves = t;
   for(j=x->nchaves; j>=i; j--) x->filho[j+1]=x->filho[j];
   x->filho[i] = z;
   for(j=x->nchaves; j>=i; j--) x->chave[j] = x->chave[j-1];
@@ -86,33 +104,40 @@ TAB *Divisao(TAB *x, int i, TAB* y, int t){
 }
 
 
-TAB *Insere_Nao_Completo(TAB *x, int k, int t){
+TAB *Insere_Nao_Completo(TAB *x, int chave, float cr, char *nome, int t){
   int i = x->nchaves-1;
   if(x->folha){
-    while((i>=0) && (k<x->chave[i])){
+    while((i>=0) && (chave<x->chave[i])){
       x->chave[i+1] = x->chave[i];
+      x->aluno[i+1] = x->aluno[i];
       i--;
     }
-    x->chave[i+1] = k;
+    x->chave[i+1] = chave;
+    x->aluno[i+1]->chave = chave;
+    x->aluno[i+1]->cr = cr;
+    strcpy(x->aluno[i+1]->nome, nome);
     x->nchaves++;
     return x;
   }
-  while((i>=0) && (k<x->chave[i])) i--;
+  while((i>=0) && (chave<x->chave[i])) i--;
   i++;
   if(x->filho[i]->nchaves == ((2*t)-1)){
     x = Divisao(x, (i+1), x->filho[i], t);
-    if(k>x->chave[i]) i++;
+    if(chave>x->chave[i]) i++;
   }
-  x->filho[i] = Insere_Nao_Completo(x->filho[i], k, t);
+  x->filho[i] = Insere_Nao_Completo(x->filho[i], chave, cr, nome, t);
   return x;
 }
 
 
-TAB *Insere(TAB *T, int k, int t){
-  if(Busca(T,k)) return T;
+TAB *Insere(TAB *T, int chave, float cr, char *nome, int t){
+  if(Busca(T,chave)) return T;
   if(!T){
     T=Cria(t);
-    T->chave[0] = k;
+    T->chave[0] = chave;
+    T->aluno[0]->chave = chave;
+    T->aluno[0]->cr = cr;
+    strcpy(T->aluno[0]->nome, nome);
     T->nchaves=1;
     return T;
   }
@@ -122,10 +147,10 @@ TAB *Insere(TAB *T, int k, int t){
     S->folha = 0;
     S->filho[0] = T;
     S = Divisao(S,1,T,t);
-    S = Insere_Nao_Completo(S,k,t);
+    S = Insere_Nao_Completo(S,chave,t);
     return S;
   }
-  T = Insere_Nao_Completo(T,k,t);
+  T = Insere_Nao_Completo(T,chave,t);
   return T;
 }
 
