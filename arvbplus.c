@@ -31,6 +31,15 @@ TAB *Cria(int t){
   return novo;
 }
 
+int folha(TAB *a)
+{
+	int i;
+	for(i=0; i<=a->nchaves; i++)
+		if(a->filho[i])
+			return 0;
+	return 1;
+}
+
 
 TAB *Libera(TAB *a){
   if(a){
@@ -68,7 +77,8 @@ TAB *Busca(TAB* x, int ch){
   if(!x) return resp;
   int i = 0;
   while(i < x->nchaves && ch >= x->chave[i]) i++;
-  if(i < x->nchaves && ch == x->chave[i] && x->folha) return x;
+  printf("------>>>>>>>>> (%d,%d)\n", ch, x->chave[i-1]);
+  if(i < x->nchaves && ch == x->chave[i-1] && x->folha) return x;
   if(x->folha) return resp;
   return Busca(x->filho[i], ch);
 }
@@ -108,7 +118,7 @@ TAB *Divisao(TAB *x, int i, TAB* y, int t){
   for(j=x->nchaves; j>=i; j--) x->filho[j+1]=x->filho[j];
   x->filho[i] = z;
   for(j=x->nchaves; j>=i; j--) x->chave[j] = x->chave[j-1];
-  x->chave[i-1] = y->chave[t-1];
+  x->chave[i-1] = y->chave[t];
   x->nchaves++;
   return x;
 }
@@ -176,7 +186,13 @@ TAB* remover(TAB* arv, int ch, int t){
     if(arv->folha){ //CASO 1
       printf("\nCASO 1\n");
       int j;
-      for(j=i; j<arv->nchaves-1;j++) arv->chave[j] = arv->chave[j+1];
+      for(j=i; j<arv->nchaves-1;j++)
+      {
+    	  arv->chave[j] = arv->chave[j+1];
+    	  arv->aluno[j].chave = arv->aluno[j+1].chave;
+    	  arv->aluno[j].cr = arv->aluno[j+1].cr;
+    	  strcpy(arv->aluno[j].nome, arv->aluno[j+1].nome);
+      }
       arv->nchaves--;
       return arv;      
     }
@@ -221,12 +237,12 @@ TAB* remover(TAB* arv, int ch, int t){
 //    }
   }
 
-  TAB *y = arv->filho[i], *z = NULL;
+  TAB *y = arv->filho[i+1], *z = NULL;
   if (y->nchaves == t-1){ //CASOS 3A e 3B
-    if((i < arv->nchaves) && (arv->filho[i+1]->nchaves >=t)){ //CASO 3A
+    if((arv->filho[i+2]) && (i < arv->nchaves) && (arv->filho[i+2]->nchaves >=t)){ //CASO 3A
       printf("\nCASO 3A: i menor que nchaves\n");
-      z = arv->filho[i+1];
-      if(!folha(y))
+      z = arv->filho[i+2];
+      if(y->folha)
       {
 		  y->chave[t-1] = arv->chave[i];   //dar a y a chave i da arv
 		  y->nchaves++;
@@ -260,10 +276,10 @@ TAB* remover(TAB* arv, int ch, int t){
 
       return arv;
     }
-    if((i > 0) && (!z) && (arv->filho[i-1]->nchaves >=t)){ //CASO 3A
+    if((i > 0) && (!z) && (arv->filho[i]->nchaves >=t)){ //CASO 3A
       printf("\nCASO 3A: i igual a nchaves\n");
-      z = arv->filho[i-1];
-      if(!folha(y))
+      z = arv->filho[i];
+      if(y->folha)
       {
 		  int j;
 		  for(j = y->nchaves; j>0; j--)               //encaixar lugar da nova chave
@@ -280,15 +296,15 @@ TAB* remover(TAB* arv, int ch, int t){
 
       else
       {
-    	  	int j;
+			int j;
 			for(j = y->nchaves; j>0; j--)               //encaixar lugar da nova chave
 			  y->chave[j] = y->chave[j-1];
-			for(j = y->nchaves+1; j>0; j--)             //encaixar lugar dos filhos da nova chave
-			  y->filho[j] = y->filho[j-1];
-			y->chave[0] = arv->chave[i-1];              //dar a y a chave i da arv
+			//for(j = y->nchaves+1; j>0; j--)             //encaixar lugar dos filhos da nova chave
+			  //y->filho[j] = y->filho[j-1];
+			y->chave[0] = z->chave[z->nchaves-1]; //dar a y a chave i da arv
 			y->nchaves++;
 			arv->chave[i-1] = z->chave[z->nchaves-1];   //dar a arv uma chave de z
-			y->filho[0] = z->filho[z->nchaves];         //enviar ponteiro de z para o novo elemento em y
+			//y->filho[0] = z->filho[z->nchaves];         //enviar ponteiro de z para o novo elemento em y
 			z->nchaves--;
 			arv->filho[i] = remover(y, ch, t);
       }
@@ -296,9 +312,9 @@ TAB* remover(TAB* arv, int ch, int t){
       return arv;
     }
     if(!z){ //CASO 3B
-      if(i < arv->nchaves && arv->filho[i+1]->nchaves == t-1){
+      if(i < arv->nchaves && arv->filho[i]->nchaves == t-1){
         printf("\nCASO 3B: i menor que nchaves\n");
-        z = arv->filho[i+1];
+        z = arv->filho[i];
         y->chave[t-1] = arv->chave[i];     //pegar chave [i] e coloca ao final de filho[i]
         y->nchaves++;
         int j;
@@ -355,7 +371,7 @@ TAB* retira(TAB* arv, int k, int t){
 }
 
 
-int main(int argc, char *argv[]){
+/*int main(int argc, char *argv[]){
   TAB * arvore = Inicializa();
   int num = 0, chave;
   char nome[31];
@@ -363,8 +379,11 @@ int main(int argc, char *argv[]){
   while(num != -1){
     printf("Digite um numero para adicionar. 0 para imprimir. -9 para remover e -1 para sair\n");
     scanf("%i", &num);
-    scanf(" %30[^\n]", nome);
-    scanf("%f", &cr);
+    if(num != -9)
+    {
+		scanf(" %30[^\n]", nome);
+		scanf("%f", &cr);
+    }
     if(num == -9){
       scanf("%d", &chave);
       arvore = retira(arvore, chave, t);
@@ -387,4 +406,80 @@ int main(int argc, char *argv[]){
     }
     printf("\n\n");
   }
+}*/
+
+int main(void)
+{
+	  TAB * arvore = Inicializa();
+	  int chave, cf = 0;
+	  char nome[31], n_arq[31];
+	  float cr;
+
+	  while(cf != -1)
+	  {
+		  printf("0 - Inserir registro manualmente\n"
+				 "1 - Inserir registros por arquivo\n"
+				 "2 - Remover um registro\n"
+				 "3 - Imprimir estrutura\n"
+				 "4 - Buscar um registro\n"
+				 "-1 - Sair do programa\n");
+
+		  printf("Digite uma opcao do menu: ");
+		  scanf("%d", &cf);
+
+		  switch(cf)
+		  {
+		  	  case 0:
+		  		  printf("Digite a matricula do aluno: ");
+		  		  scanf("%d", &chave);
+		  		  printf("Digite o nome do aluno: ");
+		  		  scanf(" %30[^\n]", nome);
+		  		  printf("Digite o CR do aluno: ");
+		  		  scanf("%f", &cr);
+		  		  arvore = Insere(arvore, chave, cr, nome, t);
+		  	  break;
+
+		  	  case 1:
+		  		  printf("Digite o nome do arquivo de registros: ");
+		  		  scanf(" %30[^\n]", n_arq);
+		  		  FILE *f = fopen(n_arq, "r");
+		  		  while(!feof(f))
+		  		  {
+		  			  fscanf(f, "%d %s %f", &chave, nome, &cr);
+		  			  arvore = Insere(arvore, chave, cr, nome, t);
+		  		  }
+		  		  fclose(f);
+		  	  break;
+
+		  	  case 2:
+		  		  printf("Digite a matriculo do aluno a ser removido: ");
+		  		  scanf("%d", &chave);
+		  		  arvore = retira(arvore, chave, t);
+		  	  break;
+
+		  	  case 3:
+		  		  Imprime(arvore, t);
+		  	  break;
+
+		  	  case 4:
+		  		  printf("Digite a matricula do aluno a ser buscado: ");
+		  		  scanf("%d", &chave);
+		  		  TAB *a = Busca(arvore, chave);
+		  		  int i;
+		  		  for(i=0; (i<a->nchaves && a->chave[i]<chave); i++);
+		  		  printf("\nMatricula: %d\n"
+		  				 "Nome: %s\n"
+		  				 "CR: %.2f", a->aluno[i].chave, a->aluno[i].nome, a->aluno[i].cr);
+		  	  break;
+
+		  	  case -1:
+		  		  return 0;
+		  	  break;
+
+		  	  default:
+		  		  Imprime(arvore, t);
+		  }
+
+		  printf("\n\n");
+	  }
 }
