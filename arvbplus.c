@@ -78,7 +78,7 @@ TAB *Busca(TAB* x, int ch){
   int i = 0;
   while(i < x->nchaves && ch >= x->chave[i]) i++;
   printf("------>>>>>>>>> (%d,%d)\n", ch, x->chave[i-1]);
-  if(i < x->nchaves && ch == x->chave[i-1] && x->folha) return x;
+  if((i-1) < x->nchaves && ch == x->chave[i-1] && x->folha) return x;
   if(x->folha) return resp;
   return Busca(x->filho[i], ch);
 }
@@ -181,12 +181,12 @@ TAB* remover(TAB* arv, int ch, int t){
   if(!arv) return arv;
   int i;
   printf("Removendo %d...\n", ch);
-  for(i = 0; i<arv->nchaves && arv->chave[i] < ch; i++);
-  if(i < arv->nchaves && ch == arv->chave[i]){ //CASOS 1, 2A, 2B e 2C
+  for(i = 0; i<arv->nchaves && arv->chave[i] <= ch; i++);
+  if((i-1) < arv->nchaves && ch == arv->chave[i-1]){ //CASOS 1, 2A, 2B e 2C
     if(arv->folha){ //CASO 1
       printf("\nCASO 1\n");
       int j;
-      for(j=i; j<arv->nchaves-1;j++)
+      for(j=i-1; j<arv->nchaves-1;j++)
       {
     	  arv->chave[j] = arv->chave[j+1];
     	  arv->aluno[j].chave = arv->aluno[j+1].chave;
@@ -237,12 +237,12 @@ TAB* remover(TAB* arv, int ch, int t){
 //    }
   }
 
-  TAB *y = arv->filho[i+1], *z = NULL;
+  TAB *y = arv->filho[i], *z = NULL;
   if (y->nchaves == t-1){ //CASOS 3A e 3B
-    if((arv->filho[i+2]) && (i < arv->nchaves) && (arv->filho[i+2]->nchaves >=t)){ //CASO 3A
+    if((arv->filho[i+1]) && (i < arv->nchaves) && (arv->filho[i+1]->nchaves >=t)){ //CASO 3A
       printf("\nCASO 3A: i menor que nchaves\n");
-      z = arv->filho[i+2];
-      if(y->folha)
+      z = arv->filho[i+1];
+      if(!y->folha)
       {
 		  y->chave[t-1] = arv->chave[i];   //dar a y a chave i da arv
 		  y->nchaves++;
@@ -276,10 +276,10 @@ TAB* remover(TAB* arv, int ch, int t){
 
       return arv;
     }
-    if((i > 0) && (!z) && (arv->filho[i]->nchaves >=t)){ //CASO 3A
+    if((i > 0) && (!z) && (arv->filho[i-1]->nchaves >=t)){ //CASO 3A
       printf("\nCASO 3A: i igual a nchaves\n");
-      z = arv->filho[i];
-      if(y->folha)
+      z = arv->filho[i-1];
+      if(!y->folha)
       {
 		  int j;
 		  for(j = y->nchaves; j>0; j--)               //encaixar lugar da nova chave
