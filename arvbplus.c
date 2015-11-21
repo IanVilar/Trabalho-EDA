@@ -77,7 +77,6 @@ TAB *Busca(TAB* x, int ch){
   if(!x) return resp;
   int i = 0;
   while(i < x->nchaves && ch >= x->chave[i]) i++;
-  printf("------>>>>>>>>> (%d,%d)\n", ch, x->chave[i-1]);
   if((i-1) < x->nchaves && ch == x->chave[i-1] && x->folha) return x;
   if(x->folha) return resp;
   return Busca(x->filho[i], ch);
@@ -246,11 +245,12 @@ TAB* remover(TAB* arv, int ch, int t){
       {
 		  y->chave[t-1] = arv->chave[i];   //dar a y a chave i da arv
 		  y->nchaves++;
-		  arv->chave[i] = z->chave[0];     //dar a arv uma chave de z
 		  int j;
 		  for(j=0; j < z->nchaves-1; j++)  //ajustar chaves de z
 			z->chave[j] = z->chave[j+1];
+
 		  //z->chave[j] = 0; Rosseti
+		  arv->chave[i] = z->chave[0];
 		  y->filho[y->nchaves] = z->filho[0]; //enviar ponteiro menor de z para o novo elemento em y
 		  for(j=0; j < z->nchaves; j++)       //ajustar filhos de z
 			z->filho[j] = z->filho[j+1];
@@ -261,34 +261,43 @@ TAB* remover(TAB* arv, int ch, int t){
       else
       {
 		  y->nchaves++;
-		  y->chave[t-1] = z->chave[0];     //dar a arv uma chave de z
-		  arv->chave[i] = z->chave[0];
+		  y->chave[t-1] = z->chave[i];   //dar a y a chave i da arv
+		  y->aluno[t-1].chave = z->aluno[i].chave;
+		  y->aluno[t-1].cr = z->aluno[i].cr;
+		  strcpy(y->aluno[t-1].nome, z->aluno[i].nome);
 		  int j;
 		  for(j=0; j < z->nchaves-1; j++)  //ajustar chaves de z
+		  {
 			z->chave[j] = z->chave[j+1];
+			z->aluno[j].chave = z->aluno[j+1].chave;
+			z->aluno[j].cr = z->aluno[j+1].cr;
+			strcpy(z->aluno[j].nome, z->aluno[j+1].nome);
+		  }
 		  //z->chave[j] = 0; Rosseti
 		  //y->filho[y->nchaves] = z->filho[0]; //enviar ponteiro menor de z para o novo elemento em y
 		  //for(j=0; j < z->nchaves; j++)       //ajustar filhos de z
 			//z->filho[j] = z->filho[j+1];
+		  printf("(%d,%d)\n", arv->chave[i], z->chave[0]);
+		  arv->chave[i] = z->chave[0];
 		  z->nchaves--;
 		  arv->filho[i] = remover(arv->filho[i], ch, t);
       }
 
       return arv;
     }
-    if((i > 0) && (!z) && (arv->filho[i-1]->nchaves >=t)){ //CASO 3A
+    if((i > 0) && (!z) && (arv->filho[i-1]) && (arv->filho[i-1]->nchaves >=t)){ //CASO 3A
       printf("\nCASO 3A: i igual a nchaves\n");
       z = arv->filho[i-1];
       if(!y->folha)
       {
 		  int j;
 		  for(j = y->nchaves; j>0; j--)               //encaixar lugar da nova chave
-			y->chave[j] = y->chave[j-1];
+		    y->chave[j] = y->chave[j-1];
 		  for(j = y->nchaves+1; j>0; j--)             //encaixar lugar dos filhos da nova chave
 			y->filho[j] = y->filho[j-1];
-		  y->chave[0] = arv->chave[i-1];              //dar a y a chave i da arv
+		  y->chave[0] = z->chave[z->nchaves-1]; //dar a y a chave i da arv
 		  y->nchaves++;
-		  arv->chave[i-1] = z->chave[z->nchaves-1];   //dar a arv uma chave de z
+		  arv->chave[i-1] = z->chave[z->nchaves-1]; //dar a arv uma chave de z
 		  y->filho[0] = z->filho[z->nchaves];         //enviar ponteiro de z para o novo elemento em y
 		  z->nchaves--;
 		  arv->filho[i] = remover(y, ch, t);
@@ -298,12 +307,20 @@ TAB* remover(TAB* arv, int ch, int t){
       {
 			int j;
 			for(j = y->nchaves; j>0; j--)               //encaixar lugar da nova chave
+			{
 			  y->chave[j] = y->chave[j-1];
+			  y->aluno[j].chave = y->aluno[j-1].chave;
+			  y->aluno[j].cr = y->aluno[j-1].cr;
+			  strcpy(y->aluno[j].nome, y->aluno[j-1].nome);
+			}
 			//for(j = y->nchaves+1; j>0; j--)             //encaixar lugar dos filhos da nova chave
 			  //y->filho[j] = y->filho[j-1];
 			y->chave[0] = z->chave[z->nchaves-1]; //dar a y a chave i da arv
+			y->aluno[0].chave = z->aluno[z->nchaves-1].chave;
+			y->aluno[0].cr = z->aluno[z->nchaves-1].cr;
+			strcpy(y->aluno[0].nome, z->aluno[z->nchaves-1].nome);
 			y->nchaves++;
-			arv->chave[i-1] = z->chave[z->nchaves-1];   //dar a arv uma chave de z
+			arv->chave[i-1] = z->chave[z->nchaves-1]; //dar a arv uma chave de z
 			//y->filho[0] = z->filho[z->nchaves];         //enviar ponteiro de z para o novo elemento em y
 			z->nchaves--;
 			arv->filho[i] = remover(y, ch, t);
@@ -312,16 +329,20 @@ TAB* remover(TAB* arv, int ch, int t){
       return arv;
     }
     if(!z){ //CASO 3B
-      if(i < arv->nchaves && arv->filho[i]->nchaves == t-1){
+      if(i < arv->nchaves && arv->filho[i+1]->nchaves == t-1){
         printf("\nCASO 3B: i menor que nchaves\n");
-        z = arv->filho[i];
-        y->chave[t-1] = arv->chave[i];     //pegar chave [i] e coloca ao final de filho[i]
-        y->nchaves++;
+        z = arv->filho[i+1];
+        //y->chave[t-1] = arv->chave[i];     //pegar chave [i] e coloca ao final de filho[i]
+        //y->nchaves++;
         int j;
         for(j=0; j < t-1; j++){
-          y->chave[t+j] = z->chave[j];     //passar filho[i+1] para filho[i]
+          y->chave[t-1+j] = z->chave[j];  //passar filho[i+1] para filho[i]
+          y->aluno[t-1+j].chave = z->aluno[j].chave;
+          y->aluno[t-1+j].cr = z->aluno[j].cr;
+          strcpy(y->aluno[t-1+j].nome, z->aluno[j].nome);
           y->nchaves++;
         }
+
         if(!y->folha){
           for(j=0; j<t; j++){
             y->filho[t+j] = z->filho[j];
@@ -338,14 +359,17 @@ TAB* remover(TAB* arv, int ch, int t){
       if((i > 0) && (arv->filho[i-1]->nchaves == t-1)){ 
         printf("\nCASO 3B: i igual a nchaves\n");
         z = arv->filho[i-1];
-        if(i == arv->nchaves)
+        /*if(i == arv->nchaves)
           z->chave[t-1] = arv->chave[i-1]; //pegar chave[i] e poe ao final de filho[i-1]
         else
-          z->chave[t-1] = arv->chave[i];   //pegar chave [i] e poe ao final de filho[i-1]
-        z->nchaves++;
+          z->chave[t-1] = arv->chave[i];*/   //pegar chave [i] e poe ao final de filho[i-1]
+        //z->nchaves++;
         int j;
         for(j=0; j < t-1; j++){
-          z->chave[t+j] = y->chave[j];     //passar filho[i+1] para filho[i]
+          z->chave[t-1+j] = y->chave[j]; //passar filho[i+1] para filho[i]
+          z->aluno[t-1+j].chave = y->aluno[j].chave;
+          z->aluno[t-1+j].cr = y->aluno[j].cr;
+          strcpy(z->aluno[t-1+j].nome, y->aluno[j].nome);
           z->nchaves++;
         }
         if(!z->folha){
@@ -473,6 +497,7 @@ int main(void)
 		  	  break;
 
 		  	  case -1:
+		  		  Libera(arvore);
 		  		  return 0;
 		  	  break;
 
