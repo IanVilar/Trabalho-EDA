@@ -508,6 +508,12 @@ int main(void)
 		  		  printf("Digite o nome do arquivo de registros: ");
 		  		  scanf(" %30[^\n]", n_arq);
 		  		  FILE *f = fopen(n_arq, "r");
+		  		  if(!f)
+		  		  {
+		  			  printf("Arquivo nao encontrado!!\n");
+		  			  continue;
+		  		  }
+
 		  		  while(!feof(f))
 		  		  {
 		  			  fscanf(f, "%d %s %f", &chave, nome, &cr);
@@ -517,7 +523,7 @@ int main(void)
 		  	  break;
 
 		  	  case 2:
-		  		  printf("Digite a matriculo do aluno a ser removido: ");
+		  		  printf("Digite a matricula do aluno a ser removido: ");
 		  		  scanf("%d", &chave);
 		  		  arvore = retira(arvore, chave, t);
 		  	  break;
