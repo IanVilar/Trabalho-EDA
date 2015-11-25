@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-const int t = 2;
+const int t = 3;
 
 typedef struct aluno
 {
@@ -476,7 +476,7 @@ TAB* retira(TAB* arv, int k, int t){
 int main(void)
 {
 	  TAB * arvore = Inicializa();
-	  int chave, cf = 0;
+	  int chave, cf = 0, i;
 	  char nome[31], n_arq[31];
 	  float cr;
 
@@ -487,6 +487,7 @@ int main(void)
 				 "2 - Remover um registro\n"
 				 "3 - Imprimir estrutura\n"
 				 "4 - Buscar um registro\n"
+				 "5 - Alterar um registro\n"
 				 "-1 - Sair do programa\n");
 
 		  printf("Digite uma opcao do menu: ");
@@ -535,12 +536,34 @@ int main(void)
 		  	  case 4:
 		  		  printf("Digite a matricula do aluno a ser buscado: ");
 		  		  scanf("%d", &chave);
-		  		  TAB *a = Busca(arvore, chave);
-		  		  int i;
-		  		  for(i=0; (i<a->nchaves && a->chave[i]<chave); i++);
+		  		  TAB *arv = Busca(arvore, chave);
+		  		  if(!arv)
+		  		  {
+		  			  printf("\nAluno nao registrado!!\n");
+		  			  continue;
+		  		  }
+		  		  for(i=0; (i<arv->nchaves && arv->chave[i]<chave); i++);
 		  		  printf("\nMatricula: %d\n"
 		  				 "Nome: %s\n"
-		  				 "CR: %.2f", a->aluno[i].chave, a->aluno[i].nome, a->aluno[i].cr);
+		  				 "CR: %.2f", arv->aluno[i].chave, arv->aluno[i].nome, arv->aluno[i].cr);
+		  	  break;
+
+		  	  case 5:
+		  		printf("Digite a matricula do aluno a ser modificado: ");
+		  		scanf("%d", &chave);
+		  		TAB *a = Busca(arvore, chave);
+		  		if(!a)
+				{
+		  			printf("\nAluno nao registrado!!\n");
+					continue;
+				}
+				for(i=0; (i<a->nchaves && a->chave[i]<chave); i++);
+				printf("\nDigite o novo nome: ");
+				scanf(" %30[^\n]", nome);
+				printf("Digite o novo CR: ");
+				scanf("%f", &cr);
+				a->aluno[i].cr = cr;
+				strcpy(a->aluno[i].nome, nome);
 		  	  break;
 
 		  	  case -1:
