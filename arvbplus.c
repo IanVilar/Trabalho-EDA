@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-const int t = 3;
+const int t = 2;
 
 typedef struct aluno
 {
@@ -107,19 +107,21 @@ TAB *Divisao(TAB *x, int i, TAB* y, int t){
   }
 
   if(!y->folha){
-    for(j=0;j<t-1;j++){
-      z->filho[j+1] = y->filho[j+t+1];
-      y->filho[j+t+1] = NULL;
+    for(j=0;j<t;j++){
+      z->filho[j] = y->filho[j+t];
+      y->filho[j+t] = NULL;
     }
-
-    z->filho[0] = NULL;
   }
 
-  y->nchaves = t;
+  y->nchaves = t-1;
+  if(y->folha)
+	  y->nchaves++;
   for(j=x->nchaves; j>=i; j--) x->filho[j+1]=x->filho[j];
   x->filho[i] = z;
   for(j=x->nchaves; j>=i; j--) x->chave[j] = x->chave[j-1];
-  x->chave[i-1] = y->chave[t];
+  x->chave[i-1] = y->chave[t-1];
+  if(y->folha)
+	  x->chave[i-1] = y->chave[t];
   x->nchaves++;
   return x;
 }
@@ -290,13 +292,13 @@ TAB* remover(TAB* arv, int ch, int t){
       z = arv->filho[i-1];
       if(!y->folha)
       {
-		  //int j;
-		  //for(j = y->nchaves; j>0; j--)               //encaixar lugar da nova chave
-		    //y->chave[j] = y->chave[j-1];
-		  //for(j = y->nchaves+1; j>0; j--)             //encaixar lugar dos filhos da nova chave
-			//y->filho[j] = y->filho[j-1];
-		  //y->chave[0] = z->chave[z->nchaves-1]; //dar a y a chave i da arv
-		  //y->nchaves++;
+		  int j;
+		  for(j = y->nchaves; j>0; j--)               //encaixar lugar da nova chave
+		    y->chave[j] = y->chave[j-1];
+		  for(j = y->nchaves+1; j>0; j--)             //encaixar lugar dos filhos da nova chave
+			y->filho[j] = y->filho[j-1];
+		  y->chave[0] = arv->chave[i-1]; //dar a y a chave i da arv
+		  y->nchaves++;
 		  arv->chave[i-1] = z->chave[z->nchaves-1]; //dar a arv uma chave de z
     	  y->filho[0] = z->filho[z->nchaves];         //enviar ponteiro de z para o novo elemento em y
 		  z->nchaves--;
@@ -435,44 +437,6 @@ TAB* retira(TAB* arv, int k, int t){
   return remover(arv, k, t);
 }
 
-
-/*int main(int argc, char *argv[]){
-  TAB * arvore = Inicializa();
-  int num = 0, chave;
-  char nome[31];
-  float cr;
-  while(num != -1){
-    printf("Digite um numero para adicionar. 0 para imprimir. -9 para remover e -1 para sair\n");
-    scanf("%i", &num);
-    if(num != -9)
-    {
-		scanf(" %30[^\n]", nome);
-		scanf("%f", &cr);
-    }
-    if(num == -9){
-      scanf("%d", &chave);
-      arvore = retira(arvore, chave, t);
-      Imprime(arvore,0);
-    }
-    else if(num == -1){
-      printf("\n");
-      Imprime(arvore,0);
-      Libera(arvore);
-      return 0;
-    }
-    else if(!num){
-      printf("\n");
-      Imprime(arvore,0);
-    }
-    else
-    {
-    	arvore = Insere(arvore, num, cr, nome, t);
-    	Imprime(arvore, 0);
-    }
-    printf("\n\n");
-  }
-}*/
-
 int main(void)
 {
 	  TAB * arvore = Inicializa();
@@ -517,7 +481,7 @@ int main(void)
 
 		  		  while(!feof(f))
 		  		  {
-		  			  fscanf(f, "%d %s %f", &chave, nome, &cr);
+		  			  fscanf(f, "%d %30[^\t] %f", &chave, nome, &cr);
 		  			  arvore = Insere(arvore, chave, cr, nome, t);
 		  		  }
 		  		  fclose(f);
