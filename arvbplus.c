@@ -16,6 +16,7 @@ typedef struct ArvB{
   Aluno *aluno;
   struct ArvB **filho;
   struct ArvB *prox;
+  struct ArvB *pai;
 }TAB;
 
 
@@ -26,6 +27,8 @@ TAB *Cria(int t){
   novo->aluno = (Aluno*) malloc(sizeof(Aluno) * ((t*2)-1));
   novo->folha=1;
   novo->filho = (TAB**)malloc(sizeof(TAB*)*t*2);
+  novo->prox = NULL;
+  novo->pai = NULL;
   int i;
   for(i=0; i<(t*2); i++) novo->filho[i] = NULL;
   return novo;
@@ -115,7 +118,10 @@ TAB *Divisao(TAB *x, int i, TAB* y, int t){
 
   y->nchaves = t-1;
   if(y->folha)
+  {
 	  y->nchaves++;
+      y->prox = z;
+  }
   for(j=x->nchaves; j>=i; j--) x->filho[j+1]=x->filho[j];
   x->filho[i] = z;
   for(j=x->nchaves; j>=i; j--) x->chave[j] = x->chave[j-1];
@@ -374,6 +380,8 @@ TAB* remover(TAB* arv, int ch, int t){
           arv->chave[j] = arv->chave[j+1];
           arv->filho[j+1] = arv->filho[j+2];
         }
+        y->prox = arv->filho[i+1];
+        Libera(z);
         arv->nchaves--;
         arv = remover(arv, ch, t);
         return arv;
@@ -420,8 +428,10 @@ TAB* remover(TAB* arv, int ch, int t){
           }
         }*/
 
+        z->prox = NULL;
+        //Libera(y);
         arv->nchaves--;
-        arv->filho[i-1] = z;
+        //arv->filho[i-1] = z;
         arv = remover(arv, ch, t);
         return arv;
       }
@@ -443,6 +453,7 @@ int main(void)
 	  int chave, cf = 0, i;
 	  char nome[31], n_arq[31];
 	  float cr;
+      TAB *aux;
 
 	  while(cf != -1)
 	  {
@@ -529,6 +540,19 @@ int main(void)
 				a->aluno[i].cr = cr;
 				strcpy(a->aluno[i].nome, nome);
 		  	  break;
+              case 6:
+                  aux = arvore;
+                  while (aux->filho[0])
+                      aux = aux->filho[0];
+                  while (aux)
+                  {
+                      int k;
+                      for (k = 0; k < aux->nchaves; k++)
+                          printf("%d", aux->chave[k]);
+                      printf(" ");
+                      aux = aux->prox;
+                  }
+                  break;
 
 		  	  case -1:
 		  		  Libera(arvore);
