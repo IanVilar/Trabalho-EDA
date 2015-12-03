@@ -290,7 +290,7 @@ TAB* remover(TAB* arv, int ch, int t){
       return arv;
     }
     if(!z){ //CASO 3B
-      r = (TAB* ) arv->filho[i+1];
+      r = (TAB*) arv->filho[i+1];
       if(i < arv->nchaves && r->nchaves == t-1){
         printf("\nCASO 3B: i menor que nchaves\n");
         z = r;
@@ -302,7 +302,7 @@ TAB* remover(TAB* arv, int ch, int t){
 
 			for(j=0; j < t-1; j++){
 			  y->chave[t+j] = z->chave[j];  //passar filho[i+1] para filho[i]
-			  y->filho[t+j] = z->filho[j];
+			  //y->filho[t+j] = z->filho[j];
 			  y->nchaves++;
 			}
 
@@ -325,7 +325,7 @@ TAB* remover(TAB* arv, int ch, int t){
           arv->filho[j+1] = arv->filho[j+2];
         }
         y->prox = arv->filho[i+1];
-        Libera(z);
+        //Libera(z);
         arv->nchaves--;
         arv = remover(arv, ch, t);
         return arv;
